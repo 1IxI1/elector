@@ -6,7 +6,7 @@
     "files": [
         "dist/**/*"
     ],
-    "homepage": "https://1ixi1.github.io/tvm-viewer",
+    "homepage": "https://emulator.ton.org/",
     "scripts": {
         "dev": "vite",
         "build": "tsc -b && vite build",

@@ -33,12 +33,12 @@ In almost any form:
 ### Use testnet
 
 By param: \
-https://1ixi1.github.io/tvm-viewer?testnet=true
+https://emulator.ton.org/tvm-viewer?testnet=true
 
 ### Make a link to viewer with tx
 
 By param: \
-https://1ixi1.github.io/tvm-viewer/?tx=4df182d84e9e1bbe76d9cfe35bd023c244c55b03cbd118457769868aa2e85bf4 \
+https://emulator.ton.org/?tx=4df182d84e9e1bbe76d9cfe35bd023c244c55b03cbd118457769868aa2e85bf4 \
 (any form as described above)
 
 ### Find tx link in tonviwer

@@ -186,7 +186,7 @@ function App() {
                     ml="0.4rem"
                     isExternal
                     aria-label="TVM Viewer GitHub page"
-                    href="https://github.com/1ixi1/tvm-viewer"
+                    href="https://github.com/ton-blockchain/tvm-web-viewer/"
                 >
                     <Icon
                         as={GithubIcon}
