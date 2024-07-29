@@ -90,6 +90,8 @@ describe('Converter', () => {
 });
 
 describe('Runner', () => {
+    const longSteps =
+        '82efb7af6e37acb5aaf07668d239c1df95c9b332345c1afcd9fc23cf5e6cb753';
     const withLibs =
         'https://ton.cx/tx/47769590000001:TfGC2E6eG7522c/jW9AjwkTFWwPL0RhFd2mGiqLoW/Q=:EQC39c119oqPkaB-fiA8_EKfejP24_IyKCNEyKFUsvXsfIHe';
     const withLibsInInit =
@@ -114,6 +116,14 @@ describe('Runner', () => {
         'https://ton.cx/tx/46843694000021:nwjPEIK88JGyPRLFVzNYHKkBb62OyVSgZKuU6J0mLC0=:EQA--JhKKuYfb-WAw7vDWEfD4fg2WOt9AuLH6xHPvF0RTUNA',
     ];
 
+    it('should emulate with long compute phase', async () => {
+        await waitForRateLimit();
+        const res = await getEmulationWithStack(longSteps, false);
+        if (res.computeInfo !== 'skipped')
+            expect(res.computeLogs.length).toBe(res.computeInfo.vmSteps - 1);
+        else throw new Error('skipped long compute phase');
+        expect(res.stateUpdateHashOk).toBe(true);
+    });
     it('should emulate with libs', async () => {
         await waitForRateLimit();
         const res = await getEmulationWithStack(withLibs, false);
