@@ -353,191 +353,217 @@ function App() {
                                 </Box>
                             </Grid>
                             {emulationResult.computeInfo !== 'skipped' ? (
-                                <Box
-                                    overflowY="scroll"
-                                    height="34rem"
-                                    border="solid"
-                                    borderColor="#E2E8F0"
-                                    bgColor="#F4F4F4"
-                                    w="100%"
-                                    mt="1rem"
-                                    py="1.2rem"
-                                    px="2rem"
-                                >
-                                    <Flex fontSize="12">
-                                        <Spacer />
-                                        <Text>
-                                            Success:{' '}
-                                            {emulationResult.computeInfo.success.toString()}
-                                        </Text>
-                                        <Spacer />
-                                        <Text>
-                                            Exit code:{' '}
-                                            {
-                                                emulationResult.computeInfo
-                                                    .exitCode
-                                            }
-                                        </Text>
-                                        <Spacer />
-                                        <Text>
-                                            Vm steps:{' '}
-                                            {
-                                                emulationResult.computeInfo
-                                                    .vmSteps
-                                            }
-                                        </Text>
+                                <Box>
+                                    <Box
+                                        overflowY="scroll"
+                                        height="34rem"
+                                        border="solid"
+                                        borderColor="#E2E8F0"
+                                        bgColor="#F4F4F4"
+                                        w="100%"
+                                        mt="1rem"
+                                        py="1.2rem"
+                                        px="2rem"
+                                    >
+                                        <Flex fontSize="12">
+                                            <Spacer />
+                                            <Text>
+                                                Success:{' '}
+                                                {emulationResult.computeInfo.success.toString()}
+                                            </Text>
+                                            <Spacer />
+                                            <Text>
+                                                Exit code:{' '}
+                                                {
+                                                    emulationResult.computeInfo
+                                                        .exitCode
+                                                }
+                                            </Text>
+                                            <Spacer />
+                                            <Text>
+                                                Vm steps:{' '}
+                                                {
+                                                    emulationResult.computeInfo
+                                                        .vmSteps
+                                                }
+                                            </Text>
 
-                                        <Spacer />
-                                        <Text>
-                                            Gas used:{' '}
-                                            {emulationResult.computeInfo.gasUsed.toString()}
-                                        </Text>
-                                        <Spacer />
-                                    </Flex>
-                                    <Flex mt="1rem">
-                                        <Box>
-                                            {emulationResult.computeLogs.map(
-                                                (log, i) => (
-                                                    <Box key={i}>
-                                                        <Button
-                                                            variant="link"
-                                                            fontFamily="IntelOneMono"
-                                                            textColor="#5B5B5B"
-                                                            fontSize="14"
-                                                            onClick={() =>
-                                                                setSelectedStep(
-                                                                    i
-                                                                )
-                                                            }
-                                                        >
-                                                            <Text
-                                                                bgColor={
-                                                                    selectedStep ==
-                                                                    i
-                                                                        ? 'white'
-                                                                        : undefined
-                                                                }
-                                                            >
-                                                                {i + 1}.{' '}
-                                                                {shortStep(
-                                                                    log.instruction
-                                                                )}
-                                                            </Text>
-                                                        </Button>
-                                                    </Box>
-                                                )
-                                            )}
-                                        </Box>
-                                        <Spacer />
-                                        {emulationResult.computeLogs && (
-                                            <Box position="relative">
-                                                <Box
-                                                    position="sticky"
-                                                    zIndex="1"
-                                                    w="25rem"
-                                                    bg="#D9D9D9"
-                                                    top="1rem"
-                                                    py="1rem"
-                                                    border="1px dashed"
-                                                    borderColor="#A2A2A2"
-                                                >
-                                                    <Flex px="1rem">
-                                                        <Tooltip
-                                                            label="Use Left key"
-                                                            openDelay={500}
-                                                            fontSize="12"
-                                                        >
+                                            <Spacer />
+                                            <Text>
+                                                Gas used:{' '}
+                                                {emulationResult.computeInfo.gasUsed.toString()}
+                                            </Text>
+                                            <Spacer />
+                                        </Flex>
+                                        <Flex mt="1rem">
+                                            <Box>
+                                                {emulationResult.computeLogs.map(
+                                                    (log, i) => (
+                                                        <Box key={i}>
                                                             <Button
-                                                                mt="0.5rem"
-                                                                mr="1rem"
                                                                 variant="link"
-                                                                p="0"
+                                                                fontFamily="IntelOneMono"
+                                                                textColor="#5B5B5B"
                                                                 fontSize="14"
-                                                                color="#000"
-                                                                onClick={
-                                                                    prevStep
+                                                                onClick={() =>
+                                                                    setSelectedStep(
+                                                                        i
+                                                                    )
                                                                 }
                                                             >
-                                                                {'<'}
+                                                                <Text
+                                                                    bgColor={
+                                                                        selectedStep ==
+                                                                        i
+                                                                            ? 'white'
+                                                                            : undefined
+                                                                    }
+                                                                >
+                                                                    {i + 1}.{' '}
+                                                                    {shortStep(
+                                                                        log.instruction
+                                                                    )}
+                                                                </Text>
                                                             </Button>
-                                                        </Tooltip>
-                                                        <Spacer />
-                                                        <Center>
-                                                            <Text
-                                                                fontFamily="IntelOneMono Bold"
-                                                                fontSize="14"
-                                                                textAlign="center"
+                                                        </Box>
+                                                    )
+                                                )}
+                                            </Box>
+                                            <Spacer />
+                                            {emulationResult.computeLogs && (
+                                                <Box position="relative">
+                                                    <Box
+                                                        position="sticky"
+                                                        zIndex="1"
+                                                        w="25rem"
+                                                        bg="#D9D9D9"
+                                                        top="1rem"
+                                                        py="1rem"
+                                                        border="1px dashed"
+                                                        borderColor="#A2A2A2"
+                                                    >
+                                                        <Flex px="1rem">
+                                                            <Tooltip
+                                                                label="Use Left key"
+                                                                openDelay={500}
+                                                                fontSize="12"
                                                             >
-                                                                {selectedStep +
-                                                                    1}
-                                                                .{' '}
-                                                                {shortStep(
-                                                                    emulationResult
-                                                                        .computeLogs[
-                                                                        selectedStep
-                                                                    ]
-                                                                        .instruction
-                                                                )}
+                                                                <Button
+                                                                    mt="0.5rem"
+                                                                    mr="1rem"
+                                                                    variant="link"
+                                                                    p="0"
+                                                                    fontSize="14"
+                                                                    color="#000"
+                                                                    onClick={
+                                                                        prevStep
+                                                                    }
+                                                                >
+                                                                    {'<'}
+                                                                </Button>
+                                                            </Tooltip>
+                                                            <Spacer />
+                                                            <Center>
+                                                                <Text
+                                                                    fontFamily="IntelOneMono Bold"
+                                                                    fontSize="14"
+                                                                    textAlign="center"
+                                                                >
+                                                                    {selectedStep +
+                                                                        1}
+                                                                    .{' '}
+                                                                    {shortStep(
+                                                                        emulationResult
+                                                                            .computeLogs[
+                                                                            selectedStep
+                                                                        ]
+                                                                            .instruction
+                                                                    )}
+                                                                </Text>
+                                                            </Center>
+                                                            <Spacer />
+                                                            <Tooltip
+                                                                label="Use Right key"
+                                                                openDelay={500}
+                                                                fontSize="12"
+                                                            >
+                                                                <Button
+                                                                    mt="0.5rem"
+                                                                    ml="1rem"
+                                                                    variant="link"
+                                                                    p="0"
+                                                                    fontSize="14"
+                                                                    color="#000"
+                                                                    onClick={
+                                                                        nextStep
+                                                                    }
+                                                                >
+                                                                    {'>'}
+                                                                </Button>
+                                                            </Tooltip>
+                                                        </Flex>
+                                                        <Center>
+                                                            <Text fontSize="12">
+                                                                Stack after:
                                                             </Text>
                                                         </Center>
-                                                        <Spacer />
-                                                        <Tooltip
-                                                            label="Use Right key"
-                                                            openDelay={500}
-                                                            fontSize="12"
+                                                        <TableContainer
+                                                            mt="0.5rem"
+                                                            overflowY="scroll"
+                                                            height="25rem"
                                                         >
-                                                            <Button
-                                                                mt="0.5rem"
-                                                                ml="1rem"
-                                                                variant="link"
-                                                                p="0"
-                                                                fontSize="14"
-                                                                color="#000"
-                                                                onClick={
-                                                                    nextStep
-                                                                }
+                                                            <Table
+                                                                size="sm"
+                                                                variant="striped"
                                                             >
-                                                                {'>'}
-                                                            </Button>
-                                                        </Tooltip>
-                                                    </Flex>
-                                                    <Center>
-                                                        <Text fontSize="12">
-                                                            Stack after:
-                                                        </Text>
-                                                    </Center>
-                                                    <TableContainer
-                                                        mt="0.5rem"
-                                                        overflowY="scroll"
-                                                        height="25rem"
-                                                    >
-                                                        <Table
-                                                            size="sm"
-                                                            variant="striped"
-                                                        >
-                                                            <Tbody>
-                                                                {emulationResult.computeLogs[
-                                                                    selectedStep
-                                                                ].stackAfter
-                                                                    .toReversed()
-                                                                    .map(
-                                                                        (
-                                                                            item,
-                                                                            i
-                                                                        ) =>
-                                                                            stackItemElement(
+                                                                <Tbody>
+                                                                    {emulationResult.computeLogs[
+                                                                        selectedStep
+                                                                    ].stackAfter
+                                                                        .toReversed()
+                                                                        .map(
+                                                                            (
                                                                                 item,
-                                                                                i,
-                                                                                handleCopy
-                                                                            )
-                                                                    )}
-                                                            </Tbody>
-                                                        </Table>
-                                                    </TableContainer>
+                                                                                i
+                                                                            ) =>
+                                                                                stackItemElement(
+                                                                                    item,
+                                                                                    i,
+                                                                                    handleCopy
+                                                                                )
+                                                                        )}
+                                                                </Tbody>
+                                                            </Table>
+                                                        </TableContainer>
+                                                    </Box>
                                                 </Box>
-                                            </Box>
-                                        )}
-                                    </Flex>
+                                            )}
+                                        </Flex>
+                                    </Box>
+                                    <Box
+                                        m="1"
+                                        fontSize="10"
+                                        opacity="50%"
+                                        fontFamily="IntelOneMono"
+                                    >
+                                        <Center>
+                                            Used Emulator from commit{' '}
+                                            <Link
+                                                mx="1"
+                                                href={`https://github.com/ton-blockchain/ton/tree/${emulationResult.emulatorVersion.commitHash}`}
+                                            >
+                                                {emulationResult.emulatorVersion.commitHash.slice(
+                                                    0,
+                                                    7
+                                                )}
+                                            </Link>
+                                            at{' '}
+                                            {
+                                                emulationResult.emulatorVersion
+                                                    .commitDate
+                                            }
+                                        </Center>
+                                    </Box>
                                 </Box>
                             ) : (
                                 <Center>

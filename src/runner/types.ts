@@ -85,6 +85,10 @@ export type EmulateWithStackResult = {
     computeLogs: TVMLog[];
     stateUpdateHashOk: boolean;
     executorLogs: string;
+    emulatorVersion: {
+        commitHash: string;
+        commitDate: string;
+    };
     links: TxLinks;
 };
 

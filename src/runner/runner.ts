@@ -1,5 +1,5 @@
 import { Buffer } from 'buffer';
-import { Blockchain, IExecutor } from '@ton/sandbox';
+import { Blockchain, Executor, IExecutor } from '@ton/sandbox';
 import {
     AccountState,
     Address,
@@ -242,28 +242,27 @@ export async function getEmulationWithStack(
     if (_libs.size > 0) libs = beginCell().storeDictDirect(_libs).endCell();
 
     // 5. prep. emulator
-
-    // enabling stack logging increases the gasUsed.
-    // so we run it twice - with and without stack
-    // let executor1 = await Executor.create();
-    // const executor2 = await Executor.create();
-    let blockchain1 = await Blockchain.create();
-    let blockchain2 = await Blockchain.create();
+    let blockchain = await Blockchain.create();
+    const executor = blockchain.executor;
+    let version = { commitHash: '', commitDate: '' };
+    // must be Executor
+    if (executor instanceof Executor) {
+        version = executor.getVersion();
+    }
 
     // function - to use many times
     async function _emulate(
-        _executor: IExecutor,
+        // _executor: IExecutor,
         _tx: Transaction,
-        _shardAccountStr: string,
-        _withStack: boolean
+        _shardAccountStr: string
     ) {
         const _msg = _tx.inMessage;
         if (!_msg) throw new Error('No in_message was found in tx');
 
-        let _txRes = _executor.runTransaction({
+        let _txRes = executor.runTransaction({
             config: blockConfig,
             libs,
-            verbosity: _withStack ? 'full_location_stack_verbose' : 'short',
+            verbosity: 'full_location_stack_verbose',
             shardAccount: _shardAccountStr,
             message: beginCell().store(storeMessage(_msg)).endCell(),
             now: _tx.now,
@@ -298,13 +297,7 @@ export async function getEmulationWithStack(
         let on = 1;
         for (let _tx of prevTxsInBlock) {
             sendStatus(`Emulating ${on}/${prevTxsInBlock.length}`);
-            let midRes = await _emulate(
-                blockchain1.executor,
-                _tx,
-                shardAccountStr,
-                false
-            );
-            await _emulate(blockchain2.executor, _tx, shardAccountStr, false); // clone - for stack later
+            let midRes = await _emulate(_tx, shardAccountStr);
 
             if (!midRes.result.success) {
                 console.log(midRes.logs);
@@ -345,18 +338,8 @@ export async function getEmulationWithStack(
 
     sendStatus('Emulating the tx');
     let accountCopy = shardAccountStr;
-    let txResCorrect = await _emulate(
-        blockchain1.executor,
-        txs[0],
-        shardAccountStr,
-        false
-    );
-    let txResWithStack = await _emulate(
-        blockchain2.executor,
-        txs[0],
-        accountCopy,
-        true
-    );
+    let txRes = await _emulate(txs[0], shardAccountStr);
+    // let txResWithStack = await _emulate(txs[0], accountCopy, true);
 
     sendStatus('Packing the result');
 
@@ -367,21 +350,17 @@ export async function getEmulationWithStack(
         console.log('Api gasUsed:', tx.tx.description.computePhase.gasUsed);
     }
 
-    console.log('logs:', txResCorrect.logs);
+    console.log('logs:', txRes.logs);
 
     // 8. process stack and instructions
 
-    if (!txResWithStack.result.success) {
-        console.error('Transaction (with stack) failed:', txResWithStack);
-        throw new Error(`Transaction failed`);
-    }
-    if (!txResCorrect.result.success) {
-        console.error('Transaction failed:', txResCorrect);
+    if (!txRes.result.success) {
+        console.error('Transaction (with stack) failed:', txRes);
         throw new Error(`Transaction failed`);
     }
     let TVMResult: TVMLog[] = [];
     let instruction = '';
-    const logs = txResWithStack.result.vmLog;
+    const logs = txRes.result.vmLog;
     for (let line of logs.split('\n')) {
         if (line.startsWith('execute')) {
             if (instruction) {
@@ -417,18 +396,15 @@ export async function getEmulationWithStack(
     // 9. parse, compile and return the result
 
     let parsedShardAccount = loadShardAccount(
-        Cell.fromBase64(txResCorrect.result.shardAccount).asSlice()
+        Cell.fromBase64(txRes.result.shardAccount).asSlice()
     );
     const endBalance = parsedShardAccount.account?.storage.balance.coins || 0n;
 
     const theTx = loadTransaction(
-        Cell.fromBase64(txResCorrect.result.transaction).asSlice()
-    );
-    const theWrongTx = loadTransaction(
-        Cell.fromBase64(txResWithStack.result.transaction).asSlice()
+        Cell.fromBase64(txRes.result.transaction).asSlice()
     );
     const wasOldHashSame = theTx.stateUpdate.oldHash.equals(
-        theWrongTx.stateUpdate.oldHash
+        theTx.stateUpdate.oldHash
     );
     console.log('VM had same hash:', wasOldHashSame);
 
@@ -510,7 +486,8 @@ export async function getEmulationWithStack(
         computeInfo,
         computeLogs: TVMResult,
         stateUpdateHashOk,
-        executorLogs: txResCorrect.logs,
+        executorLogs: txRes.logs,
+        emulatorVersion: version,
         links: txToLinks({ addr: address, lt, hash }, testnet),
     };
 }
