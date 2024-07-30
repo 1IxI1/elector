@@ -242,6 +242,7 @@ export async function getEmulationWithStack(
     if (_libs.size > 0) libs = beginCell().storeDictDirect(_libs).endCell();
 
     // 5. prep. emulator
+    sendStatus('Creating emulator');
     let blockchain = await Blockchain.create();
     const executor = blockchain.executor;
     let version = { commitHash: '', commitDate: '' };
@@ -250,12 +251,8 @@ export async function getEmulationWithStack(
         version = executor.getVersion();
     }
 
-    // function - to use many times
-    async function _emulate(
-        // _executor: IExecutor,
-        _tx: Transaction,
-        _shardAccountStr: string
-    ) {
+    // function - to use in with prev txs
+    async function _emulate(_tx: Transaction, _shardAccountStr: string) {
         const _msg = _tx.inMessage;
         if (!_msg) throw new Error('No in_message was found in tx');
 
@@ -337,9 +334,7 @@ export async function getEmulationWithStack(
     if (!msg) throw new Error('No in_message was found in tx');
 
     sendStatus('Emulating the tx');
-    let accountCopy = shardAccountStr;
     let txRes = await _emulate(txs[0], shardAccountStr);
-    // let txResWithStack = await _emulate(txs[0], accountCopy, true);
 
     sendStatus('Packing the result');
 
@@ -370,7 +365,6 @@ export async function getEmulationWithStack(
         }
 
         if (line.startsWith('stack:')) {
-            // console.log('Parsing stack for', instruction, line);
             const stack = parseStack(line);
             // got stack. now link it with the instruction
             if (instruction) {

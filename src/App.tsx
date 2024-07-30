@@ -40,6 +40,7 @@ import { linkToTx } from './runner/utils';
 import { GithubIcon } from './icons/github';
 import { TonIcon } from './icons/ton';
 import theme from './theme';
+import { DocsIcon } from './icons/docs';
 
 type KeyPressHandler = () => void;
 
@@ -170,6 +171,21 @@ function App() {
                 <Spacer />
                 <Link
                     isExternal
+                    aria-label="TVM Viewer GitHub page"
+                    href="https://github.com/ton-blockchain/tvm-web-viewer/"
+                >
+                    <Icon
+                        as={GithubIcon}
+                        display="block"
+                        transition="color 0.2s"
+                        color="gray.500"
+                        fontSize="1.5rem"
+                        _hover={{ color: 'gray.800' }}
+                    />
+                </Link>
+                <Link
+                    ml="0.4rem"
+                    isExternal
                     aria-label="TON Blockchain website"
                     href="https://ton.org"
                 >
@@ -185,11 +201,11 @@ function App() {
                 <Link
                     ml="0.4rem"
                     isExternal
-                    aria-label="TVM Viewer GitHub page"
-                    href="https://github.com/ton-blockchain/tvm-web-viewer/"
+                    aria-label="TVM Docs"
+                    href="https://docs.ton.org/learn/tvm-instructions/instructions"
                 >
                     <Icon
-                        as={GithubIcon}
+                        as={DocsIcon}
                         display="block"
                         transition="color 0.2s"
                         color="gray.500"
