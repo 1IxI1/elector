@@ -427,19 +427,29 @@ function App() {
                                                                     )
                                                                 }
                                                             >
-                                                                <Text
-                                                                    bgColor={
-                                                                        selectedStep ==
-                                                                        i
-                                                                            ? 'white'
-                                                                            : undefined
+                                                                <Tooltip
+                                                                    label={`${log.price ? `Step cost: ${log.price}  ` : ''}Gas remaining: ${log.gasRemaining}`}
+                                                                    placement="right"
+                                                                    hasArrow
+                                                                    openDelay={
+                                                                        100
                                                                     }
+                                                                    fontSize="12"
                                                                 >
-                                                                    {i + 1}.{' '}
-                                                                    {shortStep(
-                                                                        log.instruction
-                                                                    )}
-                                                                </Text>
+                                                                    <Text
+                                                                        bgColor={
+                                                                            selectedStep ==
+                                                                            i
+                                                                                ? 'white'
+                                                                                : undefined
+                                                                        }
+                                                                    >
+                                                                        {i + 1}.{' '}
+                                                                        {shortStep(
+                                                                            log.instruction
+                                                                        )}
+                                                                    </Text>
+                                                                </Tooltip>
                                                             </Button>
                                                         </Box>
                                                     )
@@ -557,7 +567,7 @@ function App() {
                                         </Flex>
                                     </Box>
                                     <Box
-                                        m="1"
+                                        m="1rem"
                                         fontSize="10"
                                         opacity="50%"
                                         fontFamily="IntelOneMono"

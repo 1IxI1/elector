@@ -37,6 +37,8 @@ export type AccountFromAPI = {
 // runner return types
 export type TVMLog = {
     instruction: string;
+    price: number | undefined;
+    gasRemaining: number;
     stackAfter: StackElement[];
 };
 

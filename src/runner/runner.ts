@@ -336,8 +336,6 @@ export async function getEmulationWithStack(
     sendStatus('Emulating the tx');
     let txRes = await _emulate(txs[0], shardAccountStr);
 
-    sendStatus('Packing the result');
-
     if (
         tx.tx.description.type === 'generic' &&
         tx.tx.description.computePhase.type === 'vm'
@@ -348,13 +346,15 @@ export async function getEmulationWithStack(
     console.log('logs:', txRes.logs);
 
     // 8. process stack and instructions
-
+    sendStatus('Reading stack');
     if (!txRes.result.success) {
         console.error('Transaction (with stack) failed:', txRes);
         throw new Error(`Transaction failed`);
     }
     let TVMResult: TVMLog[] = [];
     let instruction = '';
+    let prevGasRemaining = 0;
+    let gasRemaining = 0;
     const logs = txRes.result.vmLog;
     for (let line of logs.split('\n')) {
         if (line.startsWith('execute')) {
@@ -364,12 +364,27 @@ export async function getEmulationWithStack(
             instruction = line.slice(8);
         }
 
+        if (line.startsWith('gas remaining:')) {
+            if (gasRemaining != 0 || !instruction) {
+                console.warn('Unexpected line:', line);
+            }
+            gasRemaining = Number(line.slice(15));
+        }
+
         if (line.startsWith('stack:')) {
             const stack = parseStack(line);
-            // got stack. now link it with the instruction
+            // got stack. now link it with the instruction and gas
+
+            let price: number | undefined = prevGasRemaining - gasRemaining;
+            if (price < 0) price = undefined; // maybe SETGASLIMIT
+
             if (instruction) {
-                TVMResult.push({ instruction, stackAfter: stack });
-                instruction = '';
+                TVMResult.push({
+                    instruction,
+                    price,
+                    gasRemaining,
+                    stackAfter: stack,
+                });
             } else {
                 if (TVMResult.length > 0) {
                     // bad behavior
@@ -380,14 +395,22 @@ export async function getEmulationWithStack(
                     TVMResult.push({
                         // push stack without instruction
                         instruction: 'unknown instruction',
+                        price,
+                        gasRemaining,
                         stackAfter: stack,
                     });
                 }
             }
+
+            instruction = '';
+            prevGasRemaining = gasRemaining;
+            gasRemaining = 0;
         }
     }
 
     // 9. parse, compile and return the result
+    sendStatus('Packing the result');
+
 
     let parsedShardAccount = loadShardAccount(
         Cell.fromBase64(txRes.result.shardAccount).asSlice()
