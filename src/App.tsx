@@ -421,14 +421,18 @@ function App() {
                                                                 fontFamily="IntelOneMono"
                                                                 textColor="#5B5B5B"
                                                                 fontSize="14"
-                                                                onClick={() =>
+                                                                onClick={() => {
                                                                     setSelectedStep(
                                                                         i
-                                                                    )
-                                                                }
+                                                                    );
+                                                                }}
                                                             >
                                                                 <Tooltip
-                                                                    label={`${log.price ? `Step cost: ${log.price}  ` : ''}Gas remaining: ${log.gasRemaining}`}
+                                                                    label={
+                                                                        !log.error
+                                                                            ? `${log.price ? `Step cost: ${log.price}  ` : ''}Gas remaining: ${log.gasRemaining}`
+                                                                            : `Exit code ${log.error.code}: ${log.error.text}`
+                                                                    }
                                                                     placement="right"
                                                                     hasArrow
                                                                     openDelay={
@@ -438,10 +442,12 @@ function App() {
                                                                 >
                                                                     <Text
                                                                         bgColor={
-                                                                            selectedStep ==
-                                                                            i
-                                                                                ? 'white'
-                                                                                : undefined
+                                                                            log.error
+                                                                                ? 'red.200'
+                                                                                : selectedStep ==
+                                                                                    i
+                                                                                  ? 'white'
+                                                                                  : undefined
                                                                         }
                                                                     >
                                                                         {i + 1}.{' '}
@@ -538,6 +544,43 @@ function App() {
                                                             overflowY="scroll"
                                                             height="25rem"
                                                         >
+                                                            {emulationResult
+                                                                .computeLogs[
+                                                                selectedStep
+                                                            ].error && (
+                                                                <Box
+                                                                    bgColor="red.200"
+                                                                    fontFamily="IntelOneMono Bold"
+                                                                    fontSize="12"
+                                                                >
+                                                                    <Center>
+                                                                        <Text>
+                                                                            Failed
+                                                                            with
+                                                                            exit
+                                                                            code{' '}
+                                                                            {
+                                                                                emulationResult
+                                                                                    .computeLogs[
+                                                                                    selectedStep
+                                                                                ]
+                                                                                    .error!
+                                                                                    .code
+                                                                            }
+                                                                        </Text>
+                                                                    </Center>
+                                                                    <Center>
+                                                                        {
+                                                                            emulationResult
+                                                                                .computeLogs[
+                                                                                selectedStep
+                                                                            ]
+                                                                                .error!
+                                                                                .text
+                                                                        }
+                                                                    </Center>
+                                                                </Box>
+                                                            )}
                                                             <Table
                                                                 size="sm"
                                                                 variant="striped"

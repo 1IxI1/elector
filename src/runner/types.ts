@@ -39,6 +39,7 @@ export type TVMLog = {
     instruction: string;
     price: number | undefined;
     gasRemaining: number;
+    error?: { code: number; text: string };
     stackAfter: StackElement[];
 };
 

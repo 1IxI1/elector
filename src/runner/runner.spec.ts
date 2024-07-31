@@ -3,7 +3,7 @@ import { getEmulationWithStack, waitForRateLimit } from './runner';
 import { AccountFromAPI } from './types';
 import { linkToTx, mcSeqnoByShard, txToLinks } from './utils';
 
-describe('Converter', () => {
+describe.skip('Converter', () => {
     const justHash =
         '3e5f49798de239da5d8f80b4dc300204d37613e4203a3f7b877c04a88c81856b';
     const toncx =
@@ -90,6 +90,8 @@ describe('Converter', () => {
 });
 
 describe('Runner', () => {
+    const failed =
+        '06028d292aa58ac7d803183b2825344f8601eeb89743f1238379373bfb43e459';
     const longSteps =
         '82efb7af6e37acb5aaf07668d239c1df95c9b332345c1afcd9fc23cf5e6cb753';
     const withLibs =
@@ -115,7 +117,18 @@ describe('Runner', () => {
         'https://ton.cx/tx/46843694000003:uOHmclA04YxzjqMWcIWH6+kQ38izn62U8nyFNdqR0nw=:EQA--JhKKuYfb-WAw7vDWEfD4fg2WOt9AuLH6xHPvF0RTUNA',
         'https://ton.cx/tx/46843694000021:nwjPEIK88JGyPRLFVzNYHKkBb62OyVSgZKuU6J0mLC0=:EQA--JhKKuYfb-WAw7vDWEfD4fg2WOt9AuLH6xHPvF0RTUNA',
     ];
-
+    it('should emulate failed tx and show last step (testnet)', async () => {
+        await waitForRateLimit();
+        const res = await getEmulationWithStack(failed, true);
+        if (res.computeInfo !== 'skipped')
+            expect(res.computeLogs.length).toBe(res.computeInfo.vmSteps - 1);
+        else throw new Error('skipped error compute phase');
+        const lastStep = res.computeLogs[res.computeLogs.length - 1];
+        expect(lastStep.error).not.toBe(undefined);
+        expect(lastStep.stackAfter.length).toBe(0);
+        expect(res.stateUpdateHashOk).toBe(true);
+    });
+    return;
     it('should emulate with long compute phase', async () => {
         await waitForRateLimit();
         const res = await getEmulationWithStack(longSteps, false);

@@ -356,6 +356,7 @@ export async function getEmulationWithStack(
     let prevGasRemaining = 0;
     let gasRemaining = 0;
     const logs = txRes.result.vmLog;
+    console.log('logs:', logs);
     for (let line of logs.split('\n')) {
         if (line.startsWith('execute')) {
             if (instruction) {
@@ -406,11 +407,25 @@ export async function getEmulationWithStack(
             prevGasRemaining = gasRemaining;
             gasRemaining = 0;
         }
+
+        if (line.startsWith('handling exception code')) {
+            const exitCode = Number(line.slice(24, line.indexOf(':')));
+            const explanation = line.slice(line.indexOf(':') + 2);
+            TVMResult.push({
+                instruction,
+                price: undefined,
+                gasRemaining,
+                error: { code: exitCode, text: explanation },
+                stackAfter: [],
+            });
+            console.log(
+                `Found error ${exitCode} on instruction ${instruction}`
+            );
+        }
     }
 
     // 9. parse, compile and return the result
     sendStatus('Packing the result');
-
 
     let parsedShardAccount = loadShardAccount(
         Cell.fromBase64(txRes.result.shardAccount).asSlice()
