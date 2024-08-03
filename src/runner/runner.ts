@@ -438,6 +438,7 @@ export async function getEmulationWithStack(
             console.log(
                 `Found error ${exitCode} on instruction ${instruction}`
             );
+            break;
         }
         if (line.startsWith('final c5:')) {
             finalActions = parseC5(line);
