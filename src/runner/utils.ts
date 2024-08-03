@@ -1,5 +1,5 @@
 import { Address, Cell } from '@ton/core';
-import axios, { AxiosInstance, AxiosResponse } from 'axios';
+import axios, { AxiosResponse } from 'axios';
 import {
     AddressBookEntry,
     BaseTxInfo,
@@ -51,7 +51,7 @@ export async function mcSeqnoByShard(
             `https://${testnet ? 'testnet.' : ''}toncenter.com/api/v3/blocks`,
             {
                 params: {
-                    workchain: 0,
+                    workchain: shard.workchain,
                     shard: '0x' + shardUint.toString(16),
                     seqno: shard.seqno,
                 },
@@ -213,4 +213,30 @@ export function txToLinks(opts: BaseTxInfo, testnet: boolean): TxLinks {
         toncoin: `https://${testnet ? 'test-' : ''}explorer.toncoin.org/transaction?account=${opts.addr.toString()}&lt=${opts.lt}&hash=${opts.hash.toString('hex')}`,
         dton: `https://${testnet ? 'testnet.' : ''}dton.io/tx/F64C6A3CDF3FAD1D786AACF9A6130F18F3F76EEB71294F53BBD812AD3703E70A`,
     };
+}
+
+export function customStringify(obj: any, indent = 2, level = 0): string {
+    const indentation = ' '.repeat(level * indent);
+    const nextIndentation = ' '.repeat((level + 1) * indent);
+    
+    if (typeof obj !== 'object' || obj === null) {
+        if (typeof obj === 'string') {
+            return obj;
+        }
+        return String(obj);
+    }
+
+    if (Array.isArray(obj)) {
+        const arrayElements = obj.map(element => customStringify(element, indent, level + 1)).join(',\n' + nextIndentation);
+        return `[\n${nextIndentation}${arrayElements}\n${indentation}]`;
+    }
+
+    const entries = Object.entries(obj)
+        .map(([key, value]) => {
+            const formattedValue = customStringify(value, indent, level + 1);
+            return `${nextIndentation}${key}: ${formattedValue}`;
+        })
+        .join(',\n');
+    
+    return `{\n${entries}\n${indentation}}`;
 }

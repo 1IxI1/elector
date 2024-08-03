@@ -1,9 +1,8 @@
 import { Address } from '@ton/core';
 import { getEmulationWithStack, waitForRateLimit } from './runner';
-import { AccountFromAPI } from './types';
 import { linkToTx, mcSeqnoByShard, txToLinks } from './utils';
 
-describe.skip('Converter', () => {
+describe('Converter', () => {
     const justHash =
         '3e5f49798de239da5d8f80b4dc300204d37613e4203a3f7b877c04a88c81856b';
     const toncx =
@@ -117,6 +116,12 @@ describe('Runner', () => {
         'https://ton.cx/tx/46843694000003:uOHmclA04YxzjqMWcIWH6+kQ38izn62U8nyFNdqR0nw=:EQA--JhKKuYfb-WAw7vDWEfD4fg2WOt9AuLH6xHPvF0RTUNA',
         'https://ton.cx/tx/46843694000021:nwjPEIK88JGyPRLFVzNYHKkBb62OyVSgZKuU6J0mLC0=:EQA--JhKKuYfb-WAw7vDWEfD4fg2WOt9AuLH6xHPvF0RTUNA',
     ];
+
+    it('should emulate with libs', async () => {
+        await waitForRateLimit();
+        const res = await getEmulationWithStack(withLibs, false);
+        expect(res.stateUpdateHashOk).toBe(true);
+    });
     it('should emulate failed tx and show last step (testnet)', async () => {
         await waitForRateLimit();
         const res = await getEmulationWithStack(failed, true);
@@ -128,7 +133,6 @@ describe('Runner', () => {
         expect(lastStep.stackAfter.length).toBe(0);
         expect(res.stateUpdateHashOk).toBe(true);
     });
-    return;
     it('should emulate with long compute phase', async () => {
         await waitForRateLimit();
         const res = await getEmulationWithStack(longSteps, false);
@@ -137,17 +141,11 @@ describe('Runner', () => {
         else throw new Error('skipped long compute phase');
         expect(res.stateUpdateHashOk).toBe(true);
     });
-    it('should emulate with libs', async () => {
-        await waitForRateLimit();
-        const res = await getEmulationWithStack(withLibs, false);
-        expect(res.stateUpdateHashOk).toBe(true);
-    });
     it('should emulate with libs in init', async () => {
         await waitForRateLimit();
         const res = await getEmulationWithStack(withLibsInInit, false);
         expect(res.stateUpdateHashOk).toBe(true);
     });
-
     it('should emulate first tx', async () => {
         await waitForRateLimit();
         const res = await getEmulationWithStack(first, false);
@@ -160,19 +158,17 @@ describe('Runner', () => {
         });
         expect(res.computeLogs.length).toBe(res.computeInfo.vmSteps - 1);
     });
-
     it('should emulate other txs', async () => {
         for (let tx of txs) {
             await waitForRateLimit();
             const res = await getEmulationWithStack(tx, false);
             expect(res.stateUpdateHashOk).toBe(true);
-            // if (res.computeInfo !== 'skipped')
-            //     expect(res.computeLogs.length).toBe(
-            //         res.computeInfo.vmSteps - 1
-            //     );
+            if (res.computeInfo !== 'skipped')
+                expect(res.computeLogs.length).toBe(
+                    res.computeInfo.vmSteps - 1
+                );
         }
     });
-
     it('should emulate txs with random', async () => {
         for (let tx of txsWithRandom) {
             await waitForRateLimit();

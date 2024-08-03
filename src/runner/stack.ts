@@ -1,4 +1,4 @@
-import { Address, BitReader, BitString, Builder, Cell, Slice } from '@ton/core';
+import { Cell, OutAction, loadOutList, OutActionReserve } from '@ton/core';
 import { StackElement } from './types';
 
 function parseStackElement(word: string, wordsNext: string[]): StackElement {
@@ -108,4 +108,13 @@ export function parseStack(line: string): any[] {
     }
 
     return stack;
+}
+
+export function parseC5(line: string): (OutAction | OutActionReserve)[] {
+    // example:
+    // final c5: C{B5EE9C7...8877FA}
+    const cellBoc = Buffer.from(line.slice(12, -1), 'hex');
+    const c5 = Cell.fromBoc(cellBoc)[0];
+    const c5Slice = c5.beginParse();
+    return loadOutList(c5Slice);
 }

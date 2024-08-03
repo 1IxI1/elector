@@ -1,5 +1,5 @@
 import { Buffer } from 'buffer';
-import { Blockchain, Executor, IExecutor } from '@ton/sandbox';
+import { Blockchain, Executor } from '@ton/sandbox';
 import {
     AccountState,
     Address,
@@ -12,6 +12,7 @@ import {
     Transaction,
     loadTransaction,
     Dictionary,
+    OutAction,
 } from '@ton/core';
 import {
     loadConfigParamsAsSlice,
@@ -27,7 +28,7 @@ import {
     StateFromAPI,
     TVMLog,
 } from './types';
-import { parseStack } from './stack';
+import { parseC5, parseStack } from './stack';
 import { getLib, linkToTx, mcSeqnoByShard, txToLinks } from './utils';
 
 function b64ToBigInt(b64: string): bigint {
@@ -346,12 +347,14 @@ export async function getEmulationWithStack(
     console.log('logs:', txRes.logs);
 
     // 8. process stack and instructions
+
     sendStatus('Reading stack');
     if (!txRes.result.success) {
         console.error('Transaction (with stack) failed:', txRes);
         throw new Error(`Transaction failed`);
     }
     let TVMResult: TVMLog[] = [];
+    let finalActions: OutAction[] = [];
     let instruction = '';
     let prevGasRemaining = 0;
     let gasRemaining = 0;
@@ -408,9 +411,23 @@ export async function getEmulationWithStack(
             gasRemaining = 0;
         }
 
-        if (line.startsWith('handling exception code')) {
-            const exitCode = Number(line.slice(24, line.indexOf(':')));
-            const explanation = line.slice(line.indexOf(':') + 2);
+        if (
+            line.startsWith('handling exception code') ||
+            line.startsWith(
+                'default exception handler, terminating vm with exit code'
+            )
+        ) {
+            let exitCode: number;
+            let explanation: string;
+            if (line.startsWith('handling')) {
+                // when error occurs on ordinary instruction
+                exitCode = Number(line.slice(24, line.indexOf(':')));
+                explanation = line.slice(line.indexOf(':') + 2);
+            } else {
+                // or when it's THROW (IF/UNLESS)
+                exitCode = Number(line.slice(57));
+                explanation = line;
+            }
             TVMResult.push({
                 instruction,
                 price: undefined,
@@ -422,9 +439,14 @@ export async function getEmulationWithStack(
                 `Found error ${exitCode} on instruction ${instruction}`
             );
         }
+        if (line.startsWith('final c5:')) {
+            finalActions = parseC5(line);
+        }
     }
 
-    // 9. parse, compile and return the result
+    // 9. process c5
+
+    // 10. parse, compile and return the result
     sendStatus('Packing the result');
 
     let parsedShardAccount = loadShardAccount(
@@ -521,5 +543,6 @@ export async function getEmulationWithStack(
         executorLogs: txRes.logs,
         emulatorVersion: version,
         links: txToLinks({ addr: address, lt, hash }, testnet),
+        actions: finalActions,
     };
 }

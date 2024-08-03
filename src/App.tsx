@@ -31,12 +31,26 @@ import {
     Tr,
     Td,
     Icon,
+    Card,
+    CardHeader,
+    CardBody,
+    CardFooter,
+    SimpleGrid,
 } from '@chakra-ui/react';
 import { ExternalLinkIcon } from '@chakra-ui/icons';
-import { Builder, Cell, fromNano, Slice } from '@ton/core';
+import {
+    Address,
+    beginCell,
+    Builder,
+    Cell,
+    fromNano,
+    OutAction,
+    Slice,
+    storeMessageRelaxed,
+} from '@ton/core';
 import { getEmulationWithStack } from './runner/runner';
 import { EmulateWithStackResult, StackElement } from './runner/types';
-import { linkToTx } from './runner/utils';
+import { customStringify, linkToTx } from './runner/utils';
 import { GithubIcon } from './icons/github';
 import { TonIcon } from './icons/ton';
 import theme from './theme';
@@ -72,6 +86,7 @@ function App() {
     const [link, setLink] = useState<string>(txFromArg);
     const [isErrorOpen, setIsErrorOpen] = useState(false);
     const [areLogsOpen, setAreLogsOpen] = useState(false);
+    const [isC5Open, setIsC5Open] = useState(false);
     const [errorText, setErrorText] = useState('');
     const [emulationStatus, setEmulationStatus] = useState<string>('');
     const [emulationResult, setEmulationResult] = useState<
@@ -353,6 +368,21 @@ function App() {
                                     <Flex mt="1.5rem">
                                         <Spacer />
                                         <Button
+                                            px="2"
+                                            mr="0.5rem"
+                                            size="sm"
+                                            rounded="0"
+                                            fontSize="12"
+                                            fontFamily="IntelOneMono"
+                                            border="1px solid"
+                                            borderColor="#979CCA"
+                                            bg="#D5D9FF"
+                                            leftIcon=<ExternalLinkIcon mr="-4px" />
+                                            onClick={() => setIsC5Open(true)}
+                                        >
+                                            C5
+                                        </Button>
+                                        <Button
                                             size="sm"
                                             rounded="0"
                                             fontSize="12"
@@ -553,7 +583,7 @@ function App() {
                                                                     fontFamily="IntelOneMono Bold"
                                                                     fontSize="12"
                                                                 >
-                                                                    <Center>
+                                                                    <Center pt="2">
                                                                         <Text>
                                                                             Failed
                                                                             with
@@ -569,7 +599,11 @@ function App() {
                                                                             }
                                                                         </Text>
                                                                     </Center>
-                                                                    <Center>
+                                                                    <Center
+                                                                        whiteSpace="pre-wrap"
+                                                                        p="2"
+                                                                        textAlign="center"
+                                                                    >
                                                                         {
                                                                             emulationResult
                                                                                 .computeLogs[
@@ -668,6 +702,56 @@ function App() {
             </Center>
 
             <Modal
+                isOpen={isC5Open}
+                isCentered
+                scrollBehavior="inside"
+                size="full"
+                onClose={() => setIsC5Open(false)}
+            >
+                <ModalOverlay />
+                <ModalContent rounded="0">
+                    <ModalHeader fontFamily="IntelOneMono Bold">
+                        Actions cell (C5)
+                    </ModalHeader>
+                    <ModalCloseButton />
+                    {emulationResult ? (
+                        <ModalBody
+                            fontSize="12"
+                            fontFamily="IntelOneMono"
+                            whiteSpace="pre-wrap"
+                        >
+                            <SimpleGrid minChildWidth="27rem" spacing="2rem">
+                                {emulationResult.actions.length > 0 ? (
+                                    emulationResult.actions.map(
+                                        outActionElement
+                                    )
+                                ) : (
+                                    <Text>No actions</Text>
+                                )}
+                            </SimpleGrid>
+                        </ModalBody>
+                    ) : (
+                        <></>
+                    )}
+                    <ModalFooter>
+                        <Button
+                            rounded="0"
+                            size="sm"
+                            fontFamily="IntelOneMono"
+                            colorScheme="gray"
+                            border="1px solid"
+                            borderColor="#ACACAC"
+                            bg="#D9D9D9"
+                            mr={3}
+                            onClick={() => setIsC5Open(false)}
+                        >
+                            Close
+                        </Button>
+                    </ModalFooter>
+                </ModalContent>
+            </Modal>
+
+            <Modal
                 isOpen={areLogsOpen}
                 isCentered
                 scrollBehavior="inside"
@@ -694,8 +778,12 @@ function App() {
                     <ModalFooter>
                         <Button
                             rounded="0"
-                            fontFamily="IntelOneMono Bold"
+                            size="sm"
+                            fontFamily="IntelOneMono"
                             colorScheme="gray"
+                            border="1px solid"
+                            borderColor="#ACACAC"
+                            bg="#D9D9D9"
                             mr={3}
                             onClick={() => setAreLogsOpen(false)}
                         >
@@ -727,6 +815,230 @@ function App() {
                 </ModalContent>
             </Modal>
         </ChakraProvider>
+    );
+}
+
+function outActionElement(action: OutAction, i: number) {
+    const json = JSON.stringify(
+        action,
+        (_, v) => {
+            if (typeof v === 'bigint') return v.toString();
+            if (v instanceof Address) return v.toString();
+            if (v instanceof Cell) return v.toBoc().toString('base64');
+            return v;
+        },
+        2
+    );
+    const unquotedJson = json
+        .replace(/"([a-zA-Z0-9_]+)":/g, '$1:') // Remove quotes from keys
+        .replace(/"(\d+)"/g, '$1') // Remove quotes from numbers
+        .replace(/"\[(.*?)\]"/g, '[$1]') // Remove quotes from arrays
+        .replace(/"([^"]+?)":/g, '$1:') // Remove quotes from string values
+        .replace(/: "([^"]+)"/g, ': $1'); // Remove quotes from values
+
+    // const text = customStringify(json);
+    if (action.type === 'sendMsg') {
+        const msgCell = beginCell()
+            .store(storeMessageRelaxed(action.outMsg))
+            .asCell();
+        return (
+            <Card
+                width="100%"
+                m="1rem"
+                rounded="0"
+                border="1px solid"
+                borderColor="#788892"
+                bg="#D8F1FF"
+                shadow="none"
+            >
+                <CardHeader
+                    fontFamily="IntelOneMono Bold"
+                    alignSelf="center"
+                    fontSize="20"
+                    mb="-1rem"
+                >
+                    {i + 1}. Send Message
+                </CardHeader>
+                <CardBody fontSize="10" whiteSpace="pre-wrap">
+                    {unquotedJson}
+                </CardBody>
+                <CardFooter>
+                    <Flex direction="column" width="100%" gap="0.5rem">
+                        <CopyButton
+                            text={'Copy message cell'}
+                            copyContent={msgCell.toBoc().toString('base64')}
+                            bg="#B5E4FF"
+                        />
+                        <CopyButton
+                            text={'Copy message body'}
+                            copyContent={
+                                action.outMsg.body?.toString('base64') || ''
+                            }
+                            bg="#B5E4FF"
+                        />
+                        <CopyButton
+                            text={'Copy action as json'}
+                            copyContent={json}
+                            bg="#B5E4FF"
+                        />
+                    </Flex>
+                </CardFooter>
+            </Card>
+        );
+    } else if (action.type === 'setCode') {
+        return (
+            <Card
+                width="27rem"
+                m="1rem"
+                rounded="0"
+                border="1px solid"
+                borderColor="#A89871"
+                bg="#FFEAB6"
+                shadow="none"
+            >
+                <CardHeader
+                    fontFamily="IntelOneMono Bold"
+                    alignSelf="center"
+                    fontSize="20"
+                    mb="-1rem"
+                >
+                    {i + 1}. Set Code
+                </CardHeader>
+                <CardBody fontSize="10" whiteSpace="pre-wrap">
+                    {unquotedJson}
+                </CardBody>
+                <CardFooter>
+                    <Flex direction="column" width="100%" gap="0.5rem">
+                        <CopyButton
+                            text={'Copy new code cell'}
+                            copyContent={action.newCode
+                                .toBoc()
+                                .toString('base64')}
+                            bg="#FFD392"
+                        />
+                        <CopyButton
+                            text={'Copy action as json'}
+                            copyContent={json}
+                            bg="#FFD392"
+                        />
+                    </Flex>
+                </CardFooter>
+            </Card>
+        );
+    } else if (action.type === 'reserve') {
+        return (
+            <Card
+                width="27rem"
+                m="1rem"
+                rounded="0"
+                border="1px solid"
+                borderColor="#8100AE"
+                bg="#F6DBFF"
+                shadow="none"
+            >
+                <CardHeader
+                    fontFamily="IntelOneMono Bold"
+                    alignSelf="center"
+                    fontSize="20"
+                    mb="-1rem"
+                >
+                    {i + 1}. Raw Reserve
+                </CardHeader>
+                <CardBody fontSize="10" whiteSpace="pre-wrap">
+                    {unquotedJson}
+                </CardBody>
+                <CardFooter>
+                    <Flex direction="column" width="100%" gap="0.5rem">
+                        <CopyButton
+                            text={'Copy coins'}
+                            copyContent={action.currency.coins.toString()}
+                            bg="#EBB6FE"
+                        />
+                        <CopyButton
+                            text={'Copy action as json'}
+                            copyContent={json}
+                            bg="#EBB6FE"
+                        />
+                    </Flex>
+                </CardFooter>
+            </Card>
+        );
+    } else if (action.type == 'changeLibrary') {
+        return (
+            <Card
+                width="27rem"
+                m="1rem"
+                rounded="0"
+                border="1px solid"
+                borderColor="#039F01"
+                bg="#DCFFDB"
+                shadow="none"
+            >
+                <CardHeader
+                    fontFamily="IntelOneMono Bold"
+                    alignSelf="center"
+                    fontSize="20"
+                    mb="-1rem"
+                >
+                    {i + 1}. Change Library
+                </CardHeader>
+                <CardBody fontSize="10" whiteSpace="pre-wrap">
+                    {unquotedJson}
+                </CardBody>
+                <CardFooter>
+                    <Flex direction="column" width="100%" gap="0.5rem">
+                        {action.libRef.type == 'hash' ? (
+                            <CopyButton
+                                text={'Copy lib hash'}
+                                copyContent={action.libRef.libHash.toString(
+                                    'base64'
+                                )}
+                                bg="#A4F7A3"
+                            />
+                        ) : (
+                            <CopyButton
+                                text={'Copy lib cell'}
+                                copyContent={action.libRef.library
+                                    .toBoc()
+                                    .toString('base64')}
+                                bg="#A4F7A3"
+                            />
+                        )}
+                        <CopyButton
+                            text={'Copy action as json'}
+                            copyContent={json}
+                            bg="#A4F7A3"
+                        />
+                    </Flex>
+                </CardFooter>
+            </Card>
+        );
+    }
+    return <> </>;
+}
+
+function CopyButton({
+    text,
+    copyContent,
+    bg,
+}: {
+    text: string;
+    copyContent: string;
+    bg: string;
+}) {
+    return (
+        <Button
+            width="100%"
+            rounded="0"
+            colorScheme="gray"
+            border="1px solid"
+            borderColor="#A3A3A3"
+            bg={bg}
+            fontSize="12"
+            onClick={() => navigator.clipboard.writeText(copyContent)}
+        >
+            {text}
+        </Button>
     );
 }
 

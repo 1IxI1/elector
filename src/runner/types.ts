@@ -1,4 +1,4 @@
-import { Address, Builder, Cell, Slice } from '@ton/core';
+import { Address, Builder, Cell, OutAction, Slice } from '@ton/core';
 
 export type StateFromAPI =
     | {
@@ -93,6 +93,7 @@ export type EmulateWithStackResult = {
         commitDate: string;
     };
     links: TxLinks;
+    actions: OutAction[];
 };
 
 // Indexer v3 API types
