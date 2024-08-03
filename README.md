@@ -35,7 +35,7 @@ In almost any form:
 ### Use testnet
 
 By param: \
-https://emulator.ton.org/tvm-viewer?testnet=true
+https://emulator.ton.org/?testnet=true
 
 ### Make a link to viewer with tx
 
