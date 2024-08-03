@@ -1,6 +1,6 @@
 # TVM Viewer (beta)
 
-<img height="400px" src="https://github.com/user-attachments/assets/96151a33-3aad-4f50-bd72-f57b87c6f754"/>
+<img width="600px" src="https://github.com/user-attachments/assets/59ec95b9-282a-4a79-9e7c-4760e32081cf"/>
 
 Stack tracer for debugging smart contracts deployed on TON Blockchain.
 
@@ -10,8 +10,9 @@ Stack tracer for debugging smart contracts deployed on TON Blockchain.
 -   Execution realism
 -   Testnet
 -   Executor logs
+-   C5 Actions parser
+-   All explorers support
 -   Enjoyable UI (I hope)
--   All explorers support (almost)
 -   Local run (just in your browser)
 -   Lightweight (as much as possible)
 -   Robust integrity (libs, randseed, prev. txs check)
@@ -27,6 +28,7 @@ In almost any form:
 -   From tonscan.io
 -   From tonscan.org
 -   From explorer.toncoin.org
+-   From dton.io
 -   Like `lt:hash` with hash in hex
 -   Just like `hash` with hash in hex or base64
 
