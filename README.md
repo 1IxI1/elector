@@ -1,4 +1,4 @@
-# TVM Viewer (beta)
+# TVM Retracer
 
 <img width="600px" src="https://github.com/user-attachments/assets/59ec95b9-282a-4a79-9e7c-4760e32081cf"/>
 
@@ -35,12 +35,12 @@ In almost any form:
 ### Use testnet
 
 By param: \
-https://emulator.ton.org/?testnet=true
+https://retracer.ton.org/?testnet=true
 
-### Make a link to viewer with tx
+### Make a link to the retracer with tx
 
 By param: \
-https://emulator.ton.org/?tx=4df182d84e9e1bbe76d9cfe35bd023c244c55b03cbd118457769868aa2e85bf4 \
+https://retracer.ton.org/?tx=4df182d84e9e1bbe76d9cfe35bd023c244c55b03cbd118457769868aa2e85bf4 \
 (any form as described above)
 
 ### Find tx link in tonviwer

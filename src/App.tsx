@@ -186,7 +186,7 @@ function App() {
                 <Spacer />
                 <Link
                     isExternal
-                    aria-label="TVM Viewer GitHub page"
+                    aria-label="TVM Retracer GitHub page"
                     href="https://github.com/ton-blockchain/tvm-web-viewer/"
                 >
                     <Icon
@@ -231,7 +231,7 @@ function App() {
             </Flex>
             <Center>
                 <Box width="80%" alignContent="center" mt="4rem">
-                    <Heading mb="0.5rem">TVM Viewer</Heading>
+                    <Heading mb="0.5rem">TVM Retracer</Heading>
                     <InputGroup>
                         <Input
                             placeholder="Transaction link (any explorer)"
