@@ -6,7 +6,7 @@
     "files": [
         "dist/**/*"
     ],
-    "homepage": "https://emulator.ton.org/",
+    "homepage": "https://retracer.ton.org/",
     "scripts": {
         "dev": "vite",
         "build": "tsc -b && vite build",
