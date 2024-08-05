@@ -1,6 +1,6 @@
 # TVM Retracer
 
-<img width="600px" src="https://github.com/user-attachments/assets/59ec95b9-282a-4a79-9e7c-4760e32081cf"/>
+<img width="600px" src="https://github.com/user-attachments/assets/23bbea7a-f2c8-40e3-b185-b1ae3c0f0913"/>
 
 Stack tracer for debugging smart contracts deployed on TON Blockchain.
 
