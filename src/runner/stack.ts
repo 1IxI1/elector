@@ -100,7 +100,8 @@ export function parseStack(line: string): any[] {
         }
 
         let stackElement = parseStackElement(word, words.slice(i + 1));
-        if (stackElement) stackStack[stackStack.length - 1].push(stackElement);
+        if (stackElement !== undefined)
+            stackStack[stackStack.length - 1].push(stackElement);
         if (tupleEnd) {
             const tuple = stackStack.pop();
             stackStack[stackStack.length - 1].push(tuple);

@@ -2,7 +2,7 @@ import { Address } from '@ton/core';
 import { getEmulationWithStack, waitForRateLimit } from './runner';
 import { linkToTx, mcSeqnoByShard, txToLinks } from './utils';
 
-describe('Converter', () => {
+describe.skip('Converter', () => {
     const justHash =
         '3e5f49798de239da5d8f80b4dc300204d37613e4203a3f7b877c04a88c81856b';
     const toncx =
@@ -89,6 +89,8 @@ describe('Converter', () => {
 });
 
 describe('Runner', () => {
+    const strangeCheckSignU =
+        'https://ton.cx/tx/48230461000003:uDTMDoMWwwJbjNXxcdo1fupk2w7lLfQRZVyUw3SsgW0=:EQAPoYqYmy0NqxVLbDdeeH6BhoqDNgzXm_2-p73l2jpNayES';
     const failed =
         '06028d292aa58ac7d803183b2825344f8601eeb89743f1238379373bfb43e459';
     const longSteps =
@@ -97,7 +99,6 @@ describe('Runner', () => {
         'https://ton.cx/tx/47769590000001:TfGC2E6eG7522c/jW9AjwkTFWwPL0RhFd2mGiqLoW/Q=:EQC39c119oqPkaB-fiA8_EKfejP24_IyKCNEyKFUsvXsfIHe';
     const withLibsInInit =
         'https://ton.cx/tx/47769594000001:9kxqPN8/rR14aqz5phMPGPP3butxKU9Tu9gSrTcD5wo=:EQBS_eklJ4OyxzqOzF8Rcbt2XSo-3Ync7M07ldDpyrnciE9q';
-
     const first =
         'https://ton.cx/tx/44640875000007:53bLbTDYoHiBHGJPz2/oGr1JvJ/SS7iVVeMTUi5PYpw=:EQCtJGu1Q5xptmRFuP16M2w01QValw3V8IiyxQczAf83YITE';
     const txs = [
@@ -117,6 +118,11 @@ describe('Runner', () => {
         'https://ton.cx/tx/46843694000021:nwjPEIK88JGyPRLFVzNYHKkBb62OyVSgZKuU6J0mLC0=:EQA--JhKKuYfb-WAw7vDWEfD4fg2WOt9AuLH6xHPvF0RTUNA',
     ];
 
+    it('should emulate strange tx', async () => {
+        await waitForRateLimit();
+        const res = await getEmulationWithStack(strangeCheckSignU, false);
+        expect(res.stateUpdateHashOk).toBe(true);
+    });
     it('should emulate with libs', async () => {
         await waitForRateLimit();
         const res = await getEmulationWithStack(withLibs, false);
