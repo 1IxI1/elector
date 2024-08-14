@@ -127,9 +127,21 @@ export async function waitForRateLimit() {
 
 export async function getEmulationWithStack(
     txLink: string | BaseTxInfo,
-    testnet: boolean,
+    forcedTestnet: boolean = false,
     sendStatus: (status: string) => void = () => {}
 ): Promise<EmulateWithStackResult> {
+    let txInfo: BaseTxInfo;
+    let testnet = forcedTestnet || false;
+    if (typeof txLink == 'string') {
+        let txGot = await linkToTx(txLink, forcedTestnet);
+        txInfo = txGot.tx;
+        testnet = txGot.testnet;
+    } else {
+        txInfo = txLink;
+    }
+
+    let { lt, hash, addr: address } = txInfo;
+
     const endpointV4 = `https://${testnet ? 'sandbox' : 'mainnet'}-v4.tonhubapi.com`;
     const endpointV2 = `https://${testnet ? 'testnet.' : ''}toncenter.com/api/v2/jsonRPC`;
 
@@ -142,12 +154,6 @@ export async function getEmulationWithStack(
         },
     });
     const clientV2 = new TonClient({ endpoint: endpointV2, timeout: 10000 });
-
-    const {
-        lt,
-        hash,
-        addr: address,
-    } = typeof txLink == 'string' ? await linkToTx(txLink, testnet) : txLink;
 
     // 1. get tx alone to get the mc block seqno
     sendStatus('Getting the tx');
@@ -359,7 +365,7 @@ export async function getEmulationWithStack(
     let prevGasRemaining = 0;
     let gasRemaining = 0;
     const logs = txRes.result.vmLog;
-    console.log('logs:', logs);
+    // console.log('vmlogs:', logs);
     for (let line of logs.split('\n')) {
         if (line.startsWith('execute')) {
             if (instruction) {

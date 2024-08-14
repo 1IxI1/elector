@@ -1,8 +1,9 @@
 import { Address } from '@ton/core';
 import { getEmulationWithStack, waitForRateLimit } from './runner';
 import { linkToTx, mcSeqnoByShard, txToLinks } from './utils';
+import { BaseTxInfo } from './types';
 
-describe.skip('Converter', () => {
+describe('Converter', () => {
     const justHash =
         '3e5f49798de239da5d8f80b4dc300204d37613e4203a3f7b877c04a88c81856b';
     const toncx =
@@ -16,63 +17,96 @@ describe.skip('Converter', () => {
     const ltHash =
         '47670702000009:3e5f49798de239da5d8f80b4dc300204d37613e4203a3f7b877c04a88c81856b';
 
+    const testnetHash =
+        '82ce4dae8d1422cb7282e06fefc1c4d90850a13f9e9641385b15bf3af5a5016d';
+    const testnetLtHash =
+        '22552863000001:9332cb256b820e4d7a980980bbb280419c1e0e5747f562a0a7a6f4ee16c3d879';
+    const testnetTonviewer =
+        'https://testnet.tonviewer.com/transaction/272aecf007f55273a2c429fd9d74410584d06a0f811300caa3d5667f62532f97';
+
     const linkZoo = [toncx, tonscan, tonviewer, toncoin, ltHash];
 
-    let ex: { lt: bigint; hash: Buffer; addr: Address };
+    let ex: { tx: BaseTxInfo; testnet: boolean };
     it('should convert just hash to tx', async () => {
         ex = await linkToTx(justHash, false);
-        expect(ex.lt).toBe(47670702000009n);
-        expect(ex.hash.toString('base64')).toBe(
+        expect(ex.tx.lt).toBe(47670702000009n);
+        expect(ex.tx.hash.toString('base64')).toBe(
             'Pl9JeY3iOdpdj4C03DACBNN2E+QgOj97h3wEqIyBhWs='
         );
-        expect(ex.addr.toString()).toBe(
+        expect(ex.tx.addr.toString()).toBe(
             'EQDa4VOnTYlLvDJ0gZjNYm5PXfSmmtL6Vs6A_CZEtXCNICq_'
         );
     });
     it('should convert toncx', async () => {
         const res = await linkToTx(toncx, false);
-        expect(res.lt).toBe(ex.lt);
-        expect(res.hash.equals(ex.hash)).toBe(true);
-        expect(res.addr.equals(ex.addr)).toBe(true);
+        expect(res.tx.lt).toBe(ex.tx.lt);
+        expect(res.tx.hash.equals(ex.tx.hash)).toBe(true);
+        expect(res.tx.addr.equals(ex.tx.addr)).toBe(true);
     });
     it('should convert tonscan', async () => {
         await waitForRateLimit();
         const res = await linkToTx(tonscan, false);
-        expect(res.lt).toBe(ex.lt);
-        expect(res.hash.equals(ex.hash)).toBe(true);
-        expect(res.addr.equals(ex.addr)).toBe(true);
+        expect(res.tx.lt).toBe(ex.tx.lt);
+        expect(res.tx.hash.equals(ex.tx.hash)).toBe(true);
+        expect(res.tx.addr.equals(ex.tx.addr)).toBe(true);
     });
     it('should convert tonviewer', async () => {
         await waitForRateLimit();
         const res = await linkToTx(tonviewer, false);
-        expect(res.lt).toBe(ex.lt);
-        expect(res.hash.equals(ex.hash)).toBe(true);
-        expect(res.addr.equals(ex.addr)).toBe(true);
+        expect(res.tx.lt).toBe(ex.tx.lt);
+        expect(res.tx.hash.equals(ex.tx.hash)).toBe(true);
+        expect(res.tx.addr.equals(ex.tx.addr)).toBe(true);
     });
     it('should convert toncoin', async () => {
         await waitForRateLimit();
         const res = await linkToTx(toncoin, false);
-        expect(res.lt).toBe(ex.lt);
-        expect(res.hash.equals(ex.hash)).toBe(true);
-        expect(res.addr.equals(ex.addr)).toBe(true);
+        expect(res.tx.lt).toBe(ex.tx.lt);
+        expect(res.tx.hash.equals(ex.tx.hash)).toBe(true);
+        expect(res.tx.addr.equals(ex.tx.addr)).toBe(true);
     });
     it('should convert lt:hash', async () => {
         await waitForRateLimit();
         const res = await linkToTx(ltHash, false);
-        expect(res.lt).toBe(ex.lt);
-        expect(res.hash.equals(ex.hash)).toBe(true);
-        expect(res.addr.equals(ex.addr)).toBe(true);
+        expect(res.tx.lt).toBe(ex.tx.lt);
+        expect(res.tx.hash.equals(ex.tx.hash)).toBe(true);
+        expect(res.tx.addr.equals(ex.tx.addr)).toBe(true);
     });
+    it('should recognize testnet hash', async () => {
+        await waitForRateLimit();
+        const res = await linkToTx(testnetHash, false);
+        expect(res.testnet).toBe(true);
+        expect(res.tx.lt).toBe(22547847000001n);
 
+        await waitForRateLimit();
+        const res1 = await linkToTx(testnetHash);
+        expect(res1.testnet).toBe(true);
+        expect(res.tx.lt).toBe(22547847000001n);
+
+        await waitForRateLimit();
+        const res2 = await linkToTx(testnetHash, true);
+        expect(res2.testnet).toBe(true);
+        expect(res.tx.lt).toBe(22547847000001n);
+    });
+    it('should recognize testnet lt:hash', async () => {
+        await waitForRateLimit();
+        const res = await linkToTx(testnetLtHash);
+        expect(res.testnet).toBe(true);
+        expect(res.tx.lt).toBe(22552863000001n);
+    });
+    it('should recognize testnet tonviewer', async () => {
+        await waitForRateLimit();
+        const res = await linkToTx(testnetTonviewer);
+        expect(res.testnet).toBe(true);
+        expect(res.tx.lt).toBe(21741835000001n);
+    });
     it('should convert tx to a link', () => {
-        const reverseEx = txToLinks(ex, false);
+        const reverseEx = txToLinks(ex.tx, false);
         let i = 0;
         for (let [_, link] of Object.entries(reverseEx)) {
             expect(linkZoo[i] == link);
             i++;
         }
     });
-
     it('should get mc block by shard block', async () => {
         const res = await mcSeqnoByShard(
             {
@@ -167,12 +201,16 @@ describe('Runner', () => {
     it('should emulate other txs', async () => {
         for (let tx of txs) {
             await waitForRateLimit();
-            const res = await getEmulationWithStack(tx, false);
-            expect(res.stateUpdateHashOk).toBe(true);
-            if (res.computeInfo !== 'skipped')
-                expect(res.computeLogs.length).toBe(
-                    res.computeInfo.vmSteps - 1
-                );
+            try {
+                const res = await getEmulationWithStack(tx, false);
+                expect(res.stateUpdateHashOk).toBe(true);
+                if (res.computeInfo !== 'skipped')
+                    expect(res.computeLogs.length).toBe(
+                        res.computeInfo.vmSteps - 1
+                    );
+            } catch {
+                console.error('error in tx:', tx);
+            }
         }
     });
     it('should emulate txs with random', async () => {

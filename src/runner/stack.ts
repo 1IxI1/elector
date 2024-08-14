@@ -48,7 +48,7 @@ function parseStackElement(word: string, wordsNext: string[]): StackElement {
             }
             return slice;
         } catch (e) {
-            console.error('Error parsing slice:', e);
+            console.error(`Error parsing slice ${word}: ${e}`);
             return word;
         }
     } else if (word.startsWith('BC{')) {

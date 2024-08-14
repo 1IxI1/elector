@@ -80,8 +80,10 @@ export const getQueryParam = (param: string) => {
 };
 
 function App() {
-    const testnet = getQueryParam('testnet') === 'true';
     const txFromArg = decodeURIComponent(getQueryParam('tx') || '');
+    const [testnet, setTestnet] = useState<boolean>(
+        getQueryParam('testnet') === 'true'
+    );
 
     const [link, setLink] = useState<string>(txFromArg);
     const [isErrorOpen, setIsErrorOpen] = useState(false);
@@ -110,11 +112,13 @@ function App() {
         setErrorText('');
         setEmulationResult(undefined);
         setProcessing(true);
+        setEmulationStatus('Recognizing tx');
         try {
-            const tx = await linkToTx(link, testnet);
+            const { tx, testnet: gotTestnet } = await linkToTx(link, testnet);
+            setTestnet(gotTestnet);
             const emulation = await getEmulationWithStack(
                 tx,
-                testnet,
+                gotTestnet,
                 setEmulationStatus
             );
             setEmulationResult(emulation);

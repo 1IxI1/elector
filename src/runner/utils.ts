@@ -8,6 +8,7 @@ import {
     TransactionList,
     TxLinks,
 } from './types';
+import { waitForRateLimit } from './runner';
 
 export async function fetchTransactions(
     params: GetTransactionsParams,
@@ -103,11 +104,12 @@ export async function getLib(libhash: string, testnet: boolean): Promise<Cell> {
 
 export async function linkToTx(
     txLink: string,
-    testnet: boolean
-): Promise<BaseTxInfo> {
+    forcedTestnet?: boolean
+): Promise<{ tx: BaseTxInfo; testnet: boolean }> {
     // break given tx link to lt, hash, addr
 
     let lt: bigint, hash: Buffer, addr: Address;
+    let testnet: boolean;
 
     if (
         txLink.startsWith('https://ton.cx/tx/') ||
@@ -115,6 +117,7 @@ export async function linkToTx(
     ) {
         // example:
         // https://ton.cx/tx/47670702000009:Pl9JeY3iOdpdj4C03DACBNN2E+QgOj97h3wEqIyBhWs=:EQDa4VOnTYlLvDJ0gZjNYm5PXfSmmtL6Vs6A_CZEtXCNICq_
+        testnet = forcedTestnet || txLink.includes('testnet.');
         const infoPart = testnet ? txLink.slice(26) : txLink.slice(18);
         let [ltStr, hashStr, addrStr] = infoPart.split(':');
         lt = BigInt(ltStr);
@@ -126,6 +129,7 @@ export async function linkToTx(
     ) {
         // example:
         // https://tonviewer.com/transaction/3e5f49798de239da5d8f80b4dc300204d37613e4203a3f7b877c04a88c81856b
+        testnet = forcedTestnet || txLink.includes('testnet.');
         const infoPart = testnet ? txLink.slice(42) : txLink.slice(34);
         const res = await fetchTransactions(
             { hash: infoPart, limit: 1 },
@@ -140,6 +144,7 @@ export async function linkToTx(
     ) {
         // example:
         // https://tonscan.org/tx/Pl9JeY3iOdpdj4C03DACBNN2E+QgOj97h3wEqIyBhWs=
+        testnet = forcedTestnet || txLink.includes('testnet.');
         const infoPart = testnet ? txLink.slice(31) : txLink.slice(23);
         const res = await fetchTransactions(
             { hash: infoPart, limit: 1 },
@@ -154,6 +159,7 @@ export async function linkToTx(
     ) {
         // example:
         // https://explorer.toncoin.org/transaction?account=EQDa4VOnTYlLvDJ0gZjNYm5PXfSmmtL6Vs6A_CZEtXCNICq_&lt=47670702000009&hash=3e5f49798de239da5d8f80b4dc300204d37613e4203a3f7b877c04a88c81856b
+        testnet = forcedTestnet || txLink.includes('test-');
         const url = new URL(txLink);
         lt = BigInt(url.searchParams.get('lt') || '0');
         hash = Buffer.from(url.searchParams.get('hash') || '', 'hex');
@@ -164,6 +170,7 @@ export async function linkToTx(
     ) {
         // example:
         // https://dton.io/tx/F64C6A3CDF3FAD1D786AACF9A6130F18F3F76EEB71294F53BBD812AD3703E70A
+        testnet = forcedTestnet || txLink.includes('testnet.');
         const infoPart = testnet ? txLink.slice(27) : txLink.slice(19);
         const res = await fetchTransactions(
             { hash: infoPart, limit: 1 },
@@ -180,20 +187,74 @@ export async function linkToTx(
             let [ltStr, hashStr] = txLink.split(':');
             lt = BigInt(ltStr);
             hash = Buffer.from(hashStr, 'hex');
-            const res = await fetchTransactions(
-                { hash: hashStr, limit: 1 },
-                testnet
-            );
+
+            // first try mainnet.
+            // if get transaction failed, try testnet
+            let res: TransactionList;
+            testnet = forcedTestnet || false;
+
+            if (forcedTestnet)
+                res = await fetchTransactions(
+                    { hash: hashStr, limit: 1 },
+                    forcedTestnet
+                );
+            else
+                try {
+                    res = await fetchTransactions(
+                        { hash: hashStr, limit: 1 },
+                        testnet
+                    );
+                    if (res.transactions.length === 0)
+                        throw new Error('No transactions found');
+                } catch {
+                    console.log(`Trying testnet for ${hashStr}...`);
+                    testnet = true;
+                    await waitForRateLimit();
+                    res = await fetchTransactions(
+                        { hash: hashStr, limit: 1 },
+                        testnet
+                    );
+                    if (res.transactions.length === 0)
+                        throw new Error('No transactions found');
+                }
             addr = Address.parseRaw(res.transactions[0].account);
         } catch (e) {
+            console.log('Trying another format...');
             try {
+                if (txLink.length !== 64) throw new Error('Not hash');
+
                 // (just hash)
                 // example:
                 // 3e5f49798de239da5d8f80b4dc300204d37613e4203a3f7b877c04a88c81856b
-                const res = await fetchTransactions(
-                    { hash: txLink, limit: 1 },
-                    testnet
-                );
+                let res: TransactionList;
+                testnet = forcedTestnet || false;
+
+                await waitForRateLimit();
+                if (forcedTestnet)
+                    res = await fetchTransactions(
+                        { hash: txLink, limit: 1 },
+                        forcedTestnet
+                    );
+                else
+                    try {
+                        console.log(`Trying mainnet for ${txLink}...`);
+                        res = await fetchTransactions(
+                            { hash: txLink, limit: 1 },
+                            testnet
+                        );
+                        if (res.transactions.length === 0)
+                            throw new Error('No transactions found');
+                    } catch {
+                        console.log(`Trying testnet for ${txLink}...`);
+                        testnet = true;
+                        await waitForRateLimit();
+                        res = await fetchTransactions(
+                            { hash: txLink, limit: 1 },
+                            testnet
+                        );
+                        if (res.transactions.length === 0)
+                            throw new Error('No transactions found');
+                    }
                 hash = Buffer.from(res.transactions[0].hash, 'base64');
                 lt = BigInt(res.transactions[0].lt);
                 addr = Address.parseRaw(res.transactions[0].account);
@@ -202,7 +263,7 @@ export async function linkToTx(
             }
         }
     }
-    return { lt, hash, addr };
+    return { tx: { lt, hash, addr }, testnet };
 }
 
 export function txToLinks(opts: BaseTxInfo, testnet: boolean): TxLinks {
@@ -218,7 +279,7 @@ export function txToLinks(opts: BaseTxInfo, testnet: boolean): TxLinks {
 export function customStringify(obj: any, indent = 2, level = 0): string {
     const indentation = ' '.repeat(level * indent);
     const nextIndentation = ' '.repeat((level + 1) * indent);
-    
+
     if (typeof obj !== 'object' || obj === null) {
         if (typeof obj === 'string') {
             return obj;
@@ -227,7 +288,9 @@ export function customStringify(obj: any, indent = 2, level = 0): string {
     }
 
     if (Array.isArray(obj)) {
-        const arrayElements = obj.map(element => customStringify(element, indent, level + 1)).join(',\n' + nextIndentation);
+        const arrayElements = obj
+            .map((element) => customStringify(element, indent, level + 1))
+            .join(',\n' + nextIndentation);
         return `[\n${nextIndentation}${arrayElements}\n${indentation}]`;
     }
 
@@ -237,6 +300,6 @@ export function customStringify(obj: any, indent = 2, level = 0): string {
             return `${nextIndentation}${key}: ${formattedValue}`;
         })
         .join(',\n');
-    
+
     return `{\n${entries}\n${indentation}}`;
 }
