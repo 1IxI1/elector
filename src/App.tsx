@@ -175,9 +175,37 @@ function dataElement(action: ElectorStorage) {
         .replace(/: "([^"]+)"/g, ': $1'); // Remove quotes from values
 
     return (
-        <Box whiteSpace="pre-wrap">
-            {unquotedJson}
-            <CopyButton text={'Copy as json'} copyContent={json} bg="#B5E4FF" />
+        <Box width="80%" mx="2rem">
+            <Box bg="#B5E4FF" mb="1rem">
+                <Text fontSize="14">
+                    <Flex>
+                        <Text px="2" fontFamily="IntelOneMono Bold">
+                            {' '}
+                            elect
+                        </Text>
+                        - stakes sent but not yet chosen for validation.
+                    </Flex>
+                    <Flex>
+                        <Text px="2" fontFamily="IntelOneMono Bold">
+                            {' '}
+                            credits
+                        </Text>
+                        - stakes, can be immediately withdrawn past election -
+                        list of stakes awaiting to be unfrozen (time of unfreeze
+                        is in "unfreeze_at" field).
+                    </Flex>
+                </Text>
+            </Box>
+            <Center>
+                <Box whiteSpace="pre-wrap" wordBreak="break-word">
+                    {unquotedJson}
+                    <CopyButton
+                        text={'Copy as json'}
+                        copyContent={json}
+                        bg="#B5E4FF"
+                    />
+                </Box>
+            </Center>
         </Box>
     );
 }
