@@ -48,6 +48,7 @@ import {
     OutAction,
     Slice,
     storeMessageRelaxed,
+    toNano,
 } from '@ton/core';
 import { getEmulationWithStack } from './runner/runner';
 import { EmulateWithStackResult, StackElement } from './runner/types';
@@ -110,6 +111,9 @@ function App() {
                     </Center>
                 </Box>
             )}
+            <Center>
+                <Heading m="1rem">Elector State</Heading>
+            </Center>
             <Center fontFamily="IntelOneMono" p="2">
                 {parseRes ? dataElement(parseRes) : <Spinner />}
             </Center>
@@ -121,28 +125,35 @@ const myStringify = (action: any) =>
     JSON.stringify(
         action,
         (k, v) => {
-            // if (k == 'active_hash') {
-            //     console.log(k);
-            //     return Buffer.from(v.data).toString('hex').toUpperCase();
-            // }
-            if (typeof v === 'bigint') return v.toString();
+            if (typeof v === 'bigint') {
+                if (k.includes('weight')) return v.toString();
+                return fromNano(v);
+            }
             if (
                 v &&
                 typeof v == 'object' &&
                 Object.hasOwn(v, 'type') &&
                 v.type == 'Buffer'
-            )
-                return Buffer.from(v.data).toString('hex').toUpperCase();
-            if (v instanceof Buffer) return v.toString('hex').toUpperCase();
+            ) {
+                if (k.includes('hash') || k.includes('pubkey'))
+                    return Buffer.from(v.data).toString('hex').toUpperCase();
+                else return new Address(-1, Buffer.from(v.data)).toString();
+            }
+            if (v instanceof Buffer) {
+                if (k.includes('hash') || k.includes('pubkey'))
+                    return Buffer.from(v).toString('hex').toUpperCase();
+                else return new Address(-1, Buffer.from(v)).toString();
+            }
             if (v instanceof Address) return v.toString();
             if (v instanceof Cell) return v.toBoc().toString('base64');
             if (v instanceof Dictionary) {
                 const obj: Record<string, any> = {};
                 for (const key of v.keys()) {
-                    console.log(key, typeof key, key instanceof Buffer);
                     let keyToSet = key;
                     if (key instanceof Buffer) {
-                        keyToSet = key.toString('hex').toUpperCase();
+                        if (k !== 'frozen_dict')
+                            keyToSet = new Address(-1, key);
+                        else keyToSet = key.toString('hex').toUpperCase();
                     }
                     obj[keyToSet] = v.get(key);
                 }
@@ -154,7 +165,6 @@ const myStringify = (action: any) =>
     );
 
 function dataElement(action: ElectorStorage) {
-    console.log(action);
     const json = myStringify(action);
     console.log(json);
     const unquotedJson = json
@@ -167,11 +177,7 @@ function dataElement(action: ElectorStorage) {
     return (
         <Box whiteSpace="pre-wrap">
             {unquotedJson}
-            <CopyButton
-                text={'Copy action as json'}
-                copyContent={json}
-                bg="#A4F7A3"
-            />
+            <CopyButton text={'Copy as json'} copyContent={json} bg="#B5E4FF" />
         </Box>
     );
 }
@@ -193,7 +199,8 @@ function CopyButton({
             border="1px solid"
             borderColor="#A3A3A3"
             bg={bg}
-            fontSize="12"
+            fontSize="14"
+            fontFamily="IntelOneMono Bold"
             onClick={() => navigator.clipboard.writeText(copyContent)}
         >
             {text}
