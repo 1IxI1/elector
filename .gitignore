@@ -28,3 +28,4 @@ Session.vim
 src/runner/executor/
 src/runner/tesst.ts
 compare.py
+.venv

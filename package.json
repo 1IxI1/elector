@@ -1,12 +1,12 @@
 {
-    "name": "tvm-retracer",
+    "name": "elector-parser",
     "private": true,
     "version": "0.0.2",
     "main": "dist/index.js",
     "files": [
         "dist/**/*"
     ],
-    "homepage": "https://retracer.ton.org/",
+    "homepage": "https://1ixi1.github.io/elector",
     "scripts": {
         "dev": "vite",
         "build": "tsc -b && vite build",
@@ -21,6 +21,7 @@
         "@emotion/react": "^11.11.4",
         "@emotion/styled": "^11.11.5",
         "@orbs-network/ton-access": "^2.3.3",
+        "@ton/core": "^0.57.0",
         "@ton/crypto": "3.2.0",
         "@ton/sandbox": "0.21.0-beta.1",
         "@ton/test-utils": "^0.3.1",
