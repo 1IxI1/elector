@@ -180,19 +180,22 @@ function dataElement(action: ElectorStorage) {
                 <Text fontSize="14">
                     <Flex>
                         <Text px="2" fontFamily="IntelOneMono Bold">
-                            {' '}
                             elect
                         </Text>
                         - stakes sent but not yet chosen for validation.
                     </Flex>
                     <Flex>
                         <Text px="2" fontFamily="IntelOneMono Bold">
-                            {' '}
                             credits
                         </Text>
-                        - stakes, can be immediately withdrawn past election -
-                        list of stakes awaiting to be unfrozen (time of unfreeze
-                        is in "unfreeze_at" field).
+                        - stakes, can be immediately withdrawn.
+                    </Flex>
+                    <Flex>
+                        <Text px="2" fontFamily="IntelOneMono Bold">
+                            past election
+                        </Text>
+                        - list of stakes awaiting to be unfrozen (time of
+                        unfreeze is in "unfreeze_at" field).
                     </Flex>
                 </Text>
             </Box>
