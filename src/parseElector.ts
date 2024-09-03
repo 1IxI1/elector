@@ -331,13 +331,12 @@ const participantValue: DictionaryValue<Participant> = {
             .storeBuffer(src.adnl_addr, 32);
     },
     parse: (src: Slice) => {
-        const sc = src.loadRef().beginParse();
         return {
-            stake: sc.loadCoins(),
-            time: sc.loadUint(32),
-            max_factor: sc.loadUint(32),
-            src_addr: sc.loadBuffer(32),
-            adnl_addr: sc.loadBuffer(32),
+            stake: src.loadCoins(),
+            time: src.loadUint(32),
+            max_factor: src.loadUint(32),
+            src_addr: src.loadBuffer(32),
+            adnl_addr: src.loadBuffer(32),
         };
     },
 };
