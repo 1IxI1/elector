@@ -182,13 +182,13 @@ function dataElement(action: ElectorStorage) {
                         <Text px="2" fontFamily="IntelOneMono Bold">
                             elect
                         </Text>
-                        - stakes sent but not yet chosen for validation.
+                        - stakes sent to participate in elections and waiting till election to be either locked for round if won election or returned to participant otherwise.
                     </Flex>
                     <Flex>
                         <Text px="2" fontFamily="IntelOneMono Bold">
                             credits
                         </Text>
-                        - stakes, can be immediately withdrawn.
+                        - already unlocked stakes after validation round or elections, which can be immediately withdrawn from elector.
                     </Flex>
                     <Flex>
                         <Text px="2" fontFamily="IntelOneMono Bold">
@@ -196,6 +196,12 @@ function dataElement(action: ElectorStorage) {
                         </Text>
                         - list of stakes awaiting to be unfrozen (time of
                         unfreeze is in "unfreeze_at" field).
+                    </Flex>
+                    <Flex>
+                        <Text px="2" fontFamily="IntelOneMono Bold">
+                            banned
+                        </Text>
+                        - always false: while this field presents in the state of elector, currently there is no mechanism to set it to true.
                     </Flex>
                 </Text>
             </Box>
