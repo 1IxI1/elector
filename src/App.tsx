@@ -125,6 +125,9 @@ const myStringify = (action: any) =>
     JSON.stringify(
         action,
         (k, v) => {
+            if (k == 'banned') {
+                return undefined;
+            };
             if (typeof v === 'bigint') {
                 if (k.includes('weight')) return v.toString();
                 return fromNano(v);
@@ -196,12 +199,6 @@ function dataElement(action: ElectorStorage) {
                         </Text>
                         - list of stakes awaiting to be unfrozen (time of
                         unfreeze is in "unfreeze_at" field).
-                    </Flex>
-                    <Flex>
-                        <Text px="2" fontFamily="IntelOneMono Bold">
-                            banned
-                        </Text>
-                        - always false: while this field presents in the state of elector, currently there is no mechanism to set it to true.
                     </Flex>
                 </Text>
             </Box>
